@@ -12,12 +12,20 @@ def get_psql_connector(host, port, database, user, password, schema='public'):
     meta = sqlalchemy.MetaData(engine, schema=schema)
     meta.reflect(engine, schema=schema)
     pdsql = pd.io.sql.SQLDatabase(engine, meta=meta)
-    return pdsql
+    return pdsql, c.connection
 
 if __name__ == "__main__":
 
-    connector = get_psql_connector("localhost", 5432, "database", "username", "password")
+    dfConnector, connection = get_psql_connector("localhost", 5432, "database", "username", "password")
+    
     df = pd.DataFrame([[1,'a'],[2,'b']],columns = ['num','letter'])
-    connector.to_sql(df,"firstTable")
+    
+    # write from a DataFrame
+    dfConnector.to_sql(df,"firstTable")
+    # it happens that df.to_sql("firstTable", connection) fails
+    
+    # read to a DataFrame
+    df2 = pd.read_sql("SELECT * FROM fristTable", connection)
+    
     #todo: close the connection?
 
